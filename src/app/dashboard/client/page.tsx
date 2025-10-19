@@ -83,7 +83,7 @@ export default function ClientDashboard() {
               >
                 Sign Out
               </button>
-            </div>
+            </nav>
           </div>
         </div>
       </header>
@@ -176,3 +176,4 @@ export default function ClientDashboard() {
     </div>
   );
 }
+

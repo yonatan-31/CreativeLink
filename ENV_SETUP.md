@@ -26,3 +26,4 @@ CLOUDINARY_API_SECRET=your-api-secret
 2. **Google OAuth**: Set up OAuth credentials at https://console.cloud.google.com
 3. **Cloudinary**: Create a free account at https://cloudinary.com
 4. **NextAuth Secret**: Generate a random string for NEXTAUTH_SECRET
+

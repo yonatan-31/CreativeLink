@@ -1,20 +1,19 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import DesignerProfile from '@/models/designerProfile';
-import User from '@/models/user';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
-
+export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    const { category, minRate, maxRate, availability } = req.query;
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category');
+    const minRate = searchParams.get('minRate');
+    const maxRate = searchParams.get('maxRate');
+    const availability = searchParams.get('availability');
 
     // Build filter object
-    const filter: any = {};
+    const filter: Record<string, unknown> = {};
     
     if (category) {
       filter.category = category;
@@ -36,9 +35,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .sort({ ratingAvg: -1, reviewsCount: -1 })
       .limit(50);
 
-    res.status(200).json(designers);
+    return NextResponse.json(designers);
   } catch (error) {
     console.error('Error fetching designers:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    return NextResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

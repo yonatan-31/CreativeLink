@@ -1,19 +1,18 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import connectDB from '@/lib/db';
 import ProjectRequest from '@/models/projectRequest';
 import { authOptions } from '@/lib/auth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
-
+export async function GET() {
   try {
-    const session = await getServerSession(req, res, authOptions);
+    const session = await getServerSession(authOptions);
     
     if (!session || !session.user) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      return NextResponse.json(
+        { message: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
     await connectDB();
@@ -23,9 +22,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .populate('designerId', 'name')
       .sort({ createdAt: -1 });
 
-    res.status(200).json(requests);
+    return NextResponse.json(requests);
   } catch (error) {
     console.error('Error fetching client project requests:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    return NextResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

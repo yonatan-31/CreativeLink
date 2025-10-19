@@ -56,3 +56,4 @@ ProjectRequestSchema.index({ designerId: 1 });
 ProjectRequestSchema.index({ status: 1 });
 
 export default mongoose.models.ProjectRequest || mongoose.model<IProjectRequest>('ProjectRequest', ProjectRequestSchema);
+

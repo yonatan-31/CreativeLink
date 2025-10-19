@@ -97,3 +97,4 @@ DesignerProfileSchema.index({ rate: 1 });
 DesignerProfileSchema.index({ availability: 1 });
 
 export default mongoose.models.DesignerProfile || mongoose.model<IDesignerProfile>('DesignerProfile', DesignerProfileSchema);
+
