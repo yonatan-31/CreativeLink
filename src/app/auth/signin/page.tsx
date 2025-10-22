@@ -29,7 +29,7 @@ export default function SignIn() {
         router.push('/dashboard');
       }
     } catch (error) {
-      setError('Something went wrong');
+      setError('Something went wrong: ' + error);
     } finally {
       setIsLoading(false);
     }

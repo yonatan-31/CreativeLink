@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import connectDB from '@/lib/db';
-import User from '@/models/user';
-import { hash } from 'bcryptjs';
+import { NextRequest, NextResponse } from "next/server";
+import connectDB from "@/lib/db";
+import User from "@/models/user";
+import { hash } from "bcryptjs";
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,11 +9,12 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { name, email, password, role } = body;
-
+    console.log(" Signup body:", body);
+    
     // Validate required fields
     if (!name || !email || !password || !role) {
       return NextResponse.json(
-        { message: 'All fields are required' },
+        { message: "All fields are required" },
         { status: 400 }
       );
     }
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json(
-        { message: 'User already exists with this email' },
+        { message: "User already exists with this email" },
         { status: 400 }
       );
     }
@@ -41,18 +42,18 @@ export async function POST(request: NextRequest) {
     // Return user without password
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _password, ...userWithoutPassword } = user.toObject();
-    
+
     return NextResponse.json(
       {
-        message: 'User created successfully',
+        message: "User created successfully",
         user: userWithoutPassword,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Signup error:', error);
+    console.error("Signup error:", error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

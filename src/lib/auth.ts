@@ -1,90 +1,152 @@
-import { NextAuthOptions } from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import connectDB from './db';
-import User from '@/models/user';
-import { compare } from 'bcryptjs';
+import NextAuth from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import connectDB from "./db";
+import User from "@/models/user";
+import { compare } from "bcryptjs";
+import type { Session, User as NextAuthUser } from "next-auth";
+import type { JWT } from "next-auth/jwt";
+import type { NextAuthConfig } from "next-auth";
 
-export const authOptions: NextAuthOptions = {
+// Extend NextAuth's default types to include your custom fields
+declare module "next-auth" {
+  interface User {
+    id: string;
+    role: string;
+    avatarUrl?: string;
+  }
+
+  interface Session {
+    user: {
+      id: string;
+      name?: string | null;
+      email?: string | null;
+      role: string;
+      avatarUrl?: string;
+    };
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string;
+    role: string;
+    avatarUrl?: string;
+  }
+}
+
+export const authOptions = {
   providers: [
+    // ✅ Google OAuth
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
+
+    // ✅ Credentials provider
     CredentialsProvider({
-      name: 'credentials',
+      name: "Credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Invalid credentials');
+          throw new Error("Invalid credentials");
         }
+
+        const email = credentials.email as string;
+        const password = credentials.password as string;
 
         await connectDB();
-        
-        const user = await User.findOne({ email: credentials.email });
-        
-        if (!user) {
-          throw new Error('No user found with this email');
+
+        const user = await User.findOne({ email });
+        if (!user || !user.password) {
+          throw new Error("No user found with this email");
         }
 
-        // For now, we'll skip password verification since we're focusing on OAuth
-        // In a real app, you'd hash passwords and compare them here
+        const isValid = await compare(password, user.password);
+        if (!isValid) {
+          throw new Error("Incorrect password");
+        }
+
         return {
           id: user._id.toString(),
           email: user.email,
           name: user.name,
           role: user.role,
-          image: user.avatarUrl,
+          avatarUrl: user.avatarUrl,
         };
       },
     }),
   ],
+
   callbacks: {
-    async signIn({ user, account, profile }) {
-      if (account?.provider === 'google') {
+    async signIn({
+      user,
+      account,
+    }: {
+      user: NextAuthUser;
+      account: Record<string, unknown> | null;
+    }) {
+      if (account?.provider === "google") {
         await connectDB();
-        
+
         const existingUser = await User.findOne({ email: user.email });
-        
         if (!existingUser) {
-          // Create new user on first Google sign-in
           await User.create({
             name: user.name,
             email: user.email,
-            role: 'client', // Default role, can be changed later
+            role: "client",
             avatarUrl: user.image,
           });
         }
       }
-      
       return true;
     },
-    async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.avatarUrl = token.avatarUrl as string;
+
+    async session({
+      session,
+      token,
+    }: {
+      session: Session;
+      token: JWT;
+    }): Promise<Session> {
+      if (token && session.user) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.avatarUrl = token.avatarUrl;
       }
       return session;
     },
-    async jwt({ token, user, account }) {
+
+    async jwt({
+      token,
+      user,
+    }: {
+      token: JWT;
+      user?: NextAuthUser;
+    }): Promise<JWT> {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
-        token.avatarUrl = (user as any).avatarUrl;
+        token.role = user.role;
+        token.avatarUrl = user.avatarUrl;
       }
       return token;
     },
   },
+
   pages: {
-    signIn: '/auth/signin',
-    signUp: '/auth/signup',
+    signIn: "/auth/signin",
+    signUp: "/auth/signup",
   },
+
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
   },
+
   secret: process.env.NEXTAUTH_SECRET,
 };
+
+const nextAuth = NextAuth(authOptions as NextAuthConfig);
+export const { handlers, auth, signIn, signOut } = nextAuth;

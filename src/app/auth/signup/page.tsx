@@ -54,7 +54,7 @@ export default function SignUp() {
         setError(data.message || 'Registration failed');
       }
     } catch (error) {
-      setError('Something went wrong');
+      setError('Something went wrong: ' + error);
     } finally {
       setIsLoading(false);
     }
