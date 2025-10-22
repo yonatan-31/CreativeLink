@@ -1,21 +1,19 @@
-'use client';
-
-import { useSession, signIn } from 'next-auth/react';
+import { redirect } from 'next/navigation';
+import { auth } from '@/lib/auth';
 import Link from 'next/link';
 
-export default function Home() {
-  const { data: session, status } = useSession();
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+export default async function HomePage() {
+  const session = await auth();
+  
+  if (!session) {
+    redirect('/auth/signin');
   }
+  
+  // If user has a role, redirect to dashboard
+  if (session.user?.role) {
+    redirect('/dashboard');
+  }
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
@@ -29,7 +27,7 @@ export default function Home() {
             <nav className="flex items-center space-x-4">
               {session ? (
                 <div className="flex items-center space-x-4">
-                  <span className="text-gray-700">Welcome, {session.user?.name}</span>
+                  <span className="text-gray-700">Welcome, {session?.user?.name}</span>
                   <Link
                     href="/dashboard"
                     className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
@@ -144,3 +142,4 @@ export default function Home() {
     </div>
   );
 }
+

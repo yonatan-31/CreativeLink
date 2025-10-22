@@ -41,7 +41,7 @@ export default function Dashboard() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Link href="/" className="text-2xl font-bold text-indigo-600">
-                DesignConnect
+                Creative Link
               </Link>
             </div>
             <div className="flex items-center space-x-4">
