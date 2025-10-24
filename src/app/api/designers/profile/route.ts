@@ -1,18 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import connectDB from '@/lib/db';
-import DesignerProfile from '@/models/designerProfile';
-import { authOptions } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import connectDB from "@/lib/db";
+import DesignerProfile from "@/models/designerProfile";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    
+    const session = await auth();
     if (!session || !session.user) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     await connectDB();
@@ -20,9 +15,9 @@ export async function GET() {
     const profile = await DesignerProfile.findOne({ userId: session.user.id });
     return NextResponse.json(profile);
   } catch (error) {
-    console.error('Error fetching designer profile:', error);
+    console.error("Error fetching designer profile:", error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
@@ -30,13 +25,10 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
+    const session = await auth();
+
     if (!session || !session.user) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     await connectDB();
@@ -45,10 +37,12 @@ export async function POST(request: NextRequest) {
     const { title, bio, category, skills, rate, availability } = body;
 
     // Check if profile already exists
-    const existingProfile = await DesignerProfile.findOne({ userId: session.user.id });
+    const existingProfile = await DesignerProfile.findOne({
+      userId: session.user.id,
+    });
     if (existingProfile) {
       return NextResponse.json(
-        { message: 'Profile already exists' },
+        { message: "Profile already exists" },
         { status: 400 }
       );
     }
@@ -65,9 +59,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(profile, { status: 201 });
   } catch (error) {
-    console.error('Error creating designer profile:', error);
+    console.error("Error creating designer profile:", error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
@@ -75,13 +69,10 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
+    const session = await auth();
+
     if (!session || !session.user) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     await connectDB();
@@ -104,9 +95,31 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(profile);
   } catch (error) {
-    console.error('Error updating designer profile:', error);
+    console.error("Error updating designer profile:", error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+export async function DELETE() {
+  try {
+    const session = await auth();
+
+    if (!session || !session.user) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    await connectDB();
+
+    // Delete by userId from session to ensure users can only delete their own profile
+    await DesignerProfile.findOneAndDelete({ userId: session.user.id });
+
+    return NextResponse.json({ message: "Profile deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting designer profile:", error);
+    return NextResponse.json(
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

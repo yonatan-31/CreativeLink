@@ -99,15 +99,19 @@ export const authOptions = {
       if (account?.provider === "google") {
         await connectDB();
 
-        const existingUser = await User.findOne({ email: user.email });
+        let existingUser = await User.findOne({ email: user.email });
         if (!existingUser) {
-          await User.create({
+          existingUser = await User.create({
             name: user.name,
             email: user.email,
             role: "client",
             avatarUrl: user.image,
           });
         }
+        // Attach the user's role so jwt() can access it
+        user.id = existingUser._id.toString();
+        user.role = existingUser.role;
+        user.avatarUrl = existingUser.avatarUrl;
       }
       return true;
     },
