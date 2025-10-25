@@ -13,8 +13,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json();
-    const role = body?.role;
+  const body = await req.json();
+  const role = body.role;
+  const avatarUrl = body.avatarUrl;
     if (!role || (role !== "client" && role !== "designer")) {
       return NextResponse.json({ message: "Invalid role" }, { status: 400 });
     }
@@ -27,6 +28,9 @@ export async function POST(req: Request) {
     }
 
     user.role = role;
+    if (avatarUrl) {
+      user.avatarUrl = avatarUrl;
+    }
     await user.save();
 
     return NextResponse.json({ ok: true });

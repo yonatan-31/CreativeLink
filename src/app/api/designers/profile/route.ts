@@ -12,7 +12,9 @@ export async function GET() {
 
     await connectDB();
 
-    const profile = await DesignerProfile.findOne({ userId: session.user.id });
+    const profile = await DesignerProfile.findOne({
+      userId: session.user.id,
+    }).populate("userId", "avatarUrl");
     return NextResponse.json(profile);
   } catch (error) {
     console.error("Error fetching designer profile:", error);

@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
-    const { name, email, password, role } = body;
+    const { name, email, password, role, avatarUrl } = body;
     console.log(" Signup body:", body);
     
     // Validate required fields
@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       email,
       password: hashedPassword,
       role,
+      avatarUrl: avatarUrl || "",
     });
 
     // Return user without password
