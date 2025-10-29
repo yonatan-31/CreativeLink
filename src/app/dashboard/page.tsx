@@ -17,7 +17,17 @@ export default function Dashboard() {
     if (!session) router.push("/auth/signin");
   }, [session, status, router]);
 
-  if (status === "loading") return <p>Loading...</p>;
+   if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!session) return null;
 
   const userRole = (session.user as { role?: string })?.role || "client";
@@ -43,7 +53,7 @@ export default function Dashboard() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl pt-24 py-6 sm:px-6 lg:px-8 mx-auto">
+      <main className="max-w-7xl pt-24 pb-6 sm:px-6 lg:px-8 mx-auto">
         <div className="px-4 py-6 sm:px-0 text-center">
           <h1 className="text-3xl font-bold text-gray-900">Welcome to your Dashboard</h1>
           <p className="mt-2 text-lg text-gray-600">

@@ -142,7 +142,27 @@ export const authOptions = {
         token.id = user.id;
         token.role = user.role;
         token.avatarUrl = user.avatarUrl;
+        return token;
       }
+
+      // If there's already a token with an id (subsequent requests),
+      // refresh the role/avatar from the database so updates (like
+      // calling the `/api/auth/google-role` route) are reflected
+      // immediately in the session.
+      if (token && token.id) {
+        try {
+          await connectDB();
+          const dbUser = await User.findById(token.id);
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.avatarUrl = dbUser.avatarUrl;
+          }
+        } catch (err) {
+          // silently ignore DB errors here; keep existing token values
+          // so we don't block authentication flows
+        }
+      }
+
       return token;
     },
   },

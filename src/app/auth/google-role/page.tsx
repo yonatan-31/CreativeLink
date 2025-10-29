@@ -60,6 +60,9 @@ export default function GoogleRolePage() {
       });
 
       if (res.ok) {
+        // ✅ Refresh the session so new role appears in session.user.role
+        await fetch("/api/auth/session?update");
+        await getSession(); // Forces NextAuth to refetch the session cookie
         // role saved, go to dashboard
         router.push("/dashboard");
       } else {

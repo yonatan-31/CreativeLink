@@ -94,7 +94,7 @@ export default function DesignersPage() {
       </header>
 
       {/* Filters */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-y shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>

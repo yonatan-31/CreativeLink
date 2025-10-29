@@ -17,9 +17,6 @@ export interface IDesignerProfile extends Document {
   portfolio: IPortfolioItem[];
   ratingAvg: number;
   reviewsCount: number;
-  // profileImg?: {
-  //   avatarUrl: string;
-  // };
   createdAt: Date;
   updatedAt: Date;
 }
