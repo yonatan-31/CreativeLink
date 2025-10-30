@@ -1,11 +1,13 @@
-'use client';
+ 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Loader from '@/components/Loader';
 
 interface Designer {
   _id: string;
   userId: {
+    _id: string;
     name: string;
     avatarUrl?: string;
   };
@@ -63,14 +65,7 @@ export default function DesignersPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading designers...</p>
-        </div>
-      </div>
-    );
+    return <Loader message="Loading designers..." />;
   }
 
   return (
@@ -244,7 +239,7 @@ export default function DesignersPage() {
                     </div>
 
                     <Link
-                      href={`/designers/${designer._id}`}
+                      href={`/designers/${designer.userId._id}`}
                       className="w-full bg-indigo-600 text-white text-center py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors block"
                     >
                       View Profile

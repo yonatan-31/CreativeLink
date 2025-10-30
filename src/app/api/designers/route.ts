@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch designers with user information
     const designers = await DesignerProfile.find(filter)
-      .populate("userId", "name avatarUrl")
+      .populate("userId", " _id name avatarUrl")
       .sort({ ratingAvg: -1, reviewsCount: -1 })
       .limit(50);
 

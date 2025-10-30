@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import Loader from '@/components/Loader';
 
 interface Designer {
   _id: string;
   userId: {
+    _id: string;
     name: string;
     avatarUrl?: string;
   };
@@ -93,7 +95,7 @@ export default function DesignerProfile() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          designerId: designer._id,
+          designerId: designer.userId._id,
           title: projectForm.title,
           description: projectForm.description,
           budget: Number(projectForm.budget),
@@ -115,12 +117,7 @@ export default function DesignerProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading designer profile...</p>
-        </div>
-      </div>
+      <Loader message="Loading designer profile..." />  
     );
   }
 
@@ -145,7 +142,7 @@ export default function DesignerProfile() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <Link href="/" className="text-2xl font-bold text-indigo-600">
-                DesignConnect
+                Creative Link
               </Link>
             </div>
             <nav className="flex items-center space-x-4">
@@ -289,7 +286,7 @@ export default function DesignerProfile() {
 
                 <div className="mb-6">
                   <h3 className="font-semibold text-gray-900 mb-2">Rate</h3>
-                  <p className="text-2xl font-bold text-indigo-600">${designer.rate}/hr</p>
+                  <p className="text-2xl font-bold text-indigo-600">Birr {designer.rate}/hr</p>
                 </div>
 
                 {session && (session.user as any)?.role === 'client' && (
@@ -331,7 +328,7 @@ export default function DesignerProfile() {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Budget ($)
+                            Budget (Birr)
                           </label>
                           <input
                             type="number"
