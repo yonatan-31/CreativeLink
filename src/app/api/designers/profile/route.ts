@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
-    const { title, bio, category, skills, rate, availability } = body;
+    const { title, bio, category, skills, rate, availability, portfolio } = body;
 
     // Check if profile already exists
     const existingProfile = await DesignerProfile.findOne({
@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
       skills,
       rate,
       availability,
+      portfolio,
     });
 
     return NextResponse.json(profile, { status: 201 });
@@ -80,7 +81,7 @@ export async function PUT(request: NextRequest) {
     await connectDB();
 
     const body = await request.json();
-    const { title, bio, category, skills, rate, availability } = body;
+    const { title, bio, category, skills, rate, availability, portfolio } = body;
 
     const profile = await DesignerProfile.findOneAndUpdate(
       { userId: session.user.id },
@@ -91,8 +92,9 @@ export async function PUT(request: NextRequest) {
         skills,
         rate,
         availability,
+        portfolio
       },
-      { new: true, upsert: true }
+      { new: true }
     );
 
     return NextResponse.json(profile);

@@ -9,7 +9,7 @@ export async function GET(
   try {
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
 
     const designer = await DesignerProfile.findOne({ userId: id }).populate(
       "userId",

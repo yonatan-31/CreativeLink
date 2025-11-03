@@ -2,6 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IPortfolioItem {
   url: string;
+  publicId: string;
   title: string;
   description: string;
 }
@@ -60,6 +61,10 @@ const DesignerProfileSchema = new Schema<IDesignerProfile>(
     },
     portfolio: [{
       url: {
+        type: String,
+        required: true,
+      },
+      publicId: {
         type: String,
         required: true,
       },

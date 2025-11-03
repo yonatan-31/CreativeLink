@@ -17,6 +17,7 @@ interface DesignerProfile {
   availability: string;
   portfolio: Array<{
     url: string;
+    publicId: string;
     title: string;
     description: string;
   }>;
@@ -52,12 +53,14 @@ export default function FreelancerDashboard() {
     skills: "",
     rate: "",
     availability: "available",
-    portfolio: [
-      { url: "", title: "", description: "" }
-    ],
+    portfolio: [{ url: "", publicId: "", title: "", description: "" }],
   });
   const [portfolioFiles, setPortfolioFiles] = useState<(File | null)[]>([]);
-  const [portfolioPreviews, setPortfolioPreviews] = useState<(string | null)[]>([]);
+  const [portfolioPreviews, setPortfolioPreviews] = useState<(string | null)[]>(
+    []
+  );
+  const [deletedPortfolioIds, setDeletedPortfolioIds] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -95,11 +98,25 @@ export default function FreelancerDashboard() {
             skills: data.skills.join(", ") || "",
             rate: data.rate?.toString() || "",
             availability: data.availability || "available",
-            portfolio: data.portfolio || [{ url: "", title: "", description: "" }],
+            portfolio: data.portfolio || [
+              { url: "", publicId: "", title: "", description: "" },
+            ],
           });
           // initialize portfolio file inputs / previews
-          setPortfolioFiles((data.portfolio || [{ url: "", title: "", description: "" }]).map(() => null));
-          setPortfolioPreviews((data.portfolio || [{ url: "", title: "", description: "" }]).map((p: any) => p.url || null));
+          setPortfolioFiles(
+            (
+              data.portfolio || [
+                { url: "", publicId: "", title: "", description: "" },
+              ]
+            ).map(() => null)
+          );
+          setPortfolioPreviews(
+            (
+              data.portfolio || [
+                { url: "", publicId: "", title: "", description: "" },
+              ]
+            ).map((p: any) => p.url || null)
+          );
         }
       }
     } catch (error) {
@@ -108,6 +125,7 @@ export default function FreelancerDashboard() {
       setLoading(false);
     }
   };
+
   const fetchProjectRequests = async () => {
     try {
       const response = await fetch("/api/projects/requests");
@@ -125,9 +143,19 @@ export default function FreelancerDashboard() {
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return; // prevent double submission
+    setIsSubmitting(true);
 
     try {
-      // If any portfolio files were selected, upload them first and replace the url
+      // 1. Delete any portfolio items marked for deletion (in parallel)
+      if (deletedPortfolioIds.length > 0) {
+        try {
+          await deleteFromCloudinary(deletedPortfolioIds);
+        } catch (error) {
+          console.error("Error deleting portfolio items:", error);
+        }
+      }
+      // 2. Prepare the payload
       const payload = {
         ...profileForm,
         skills: profileForm.skills
@@ -137,20 +165,37 @@ export default function FreelancerDashboard() {
         portfolio: [...profileForm.portfolio],
       };
 
-      for (let i = 0; i < payload.portfolio.length; i++) {
-        const file = portfolioFiles[i];
-        if (file) {
-          try {
-            const uploadedUrl = await uploadToCloudinary(file);
-            payload.portfolio[i].url = uploadedUrl;
-          } catch (err) {
-            console.error("Failed to upload portfolio image:", err);
-            alert("Failed to upload one of the portfolio images. Please try again.");
-            return;
-          }
-        }
-      }
+      // 3. Upload new images (or delete old ones) in parallel
+      const updatedPortfolio = await Promise.all(
+        payload.portfolio.map(async (item, i) => {
+          const file = portfolioFiles[i];
+          const oldItem = profile?.portfolio?.[i];
 
+          // If user replaced an old image with a new one
+          if (file && oldItem?.publicId) {
+            try {
+              await deleteFromCloudinary(oldItem.publicId);
+            } catch (err) {
+              console.error("Failed to delete old image:", err);
+            }
+          }
+
+          // Upload new file if any
+          if (file) {
+            const uploaded = await uploadToCloudinary(
+              file,
+              "designersPortfolio"
+            );
+            return { ...item, url: uploaded.url, publicId: uploaded.publicId };
+          }
+
+          return item;
+        })
+      );
+
+      payload.portfolio = updatedPortfolio;
+
+      // 4. Save profile to backend
       const response = await fetch("/api/designers/profile", {
         method: profile ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -158,7 +203,7 @@ export default function FreelancerDashboard() {
       });
 
       if (response.ok) {
-        await fetchProfile();
+        await fetchProfile(); // refresh the designer’s data
         setShowProfileForm(false);
       } else {
         alert("Failed to save profile");
@@ -166,6 +211,8 @@ export default function FreelancerDashboard() {
     } catch (error) {
       console.error("Error saving profile:", error);
       alert("Failed to save profile");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -174,11 +221,12 @@ export default function FreelancerDashboard() {
     if (!confirm("Are you sure you want to delete your profile?")) return;
 
     try {
-      const res = await fetch(`/api/designers/profile/${profile._id}`, {
+      const res = await fetch(`/api/designers/profile/`, {
         method: "DELETE",
       });
 
       if (res.ok) {
+        await deleteFromCloudinary(profile.portfolio.map((p) => p.publicId));
         alert("Profile deleted successfully!");
         setProfile(null);
       } else {
@@ -192,7 +240,10 @@ export default function FreelancerDashboard() {
   const addPortfolioItem = () => {
     setProfileForm({
       ...profileForm,
-      portfolio: [...profileForm.portfolio, { url: "", title: "", description: "" }],
+      portfolio: [
+        ...profileForm.portfolio,
+        { url: "", publicId: "", title: "", description: "" },
+      ],
     });
     setPortfolioFiles([...portfolioFiles, null]);
     setPortfolioPreviews([...portfolioPreviews, null]);
@@ -205,7 +256,10 @@ export default function FreelancerDashboard() {
     setProfileForm({ ...profileForm, portfolio: updated });
   };
 
-  const removePortfolioItem = (index: number) => {
+  const removePortfolioItem = async (index: number) => {
+    const publicId = profileForm.portfolio[index]?.publicId;
+    if (publicId) setDeletedPortfolioIds([...deletedPortfolioIds, publicId]);
+
     const updated = profileForm.portfolio.filter((_, i) => i !== index);
     setProfileForm({ ...profileForm, portfolio: updated });
     setPortfolioFiles(portfolioFiles.filter((_, i) => i !== index));
@@ -233,12 +287,14 @@ export default function FreelancerDashboard() {
   };
 
   // upload helper for Cloudinary (unsigned preset)
-  const uploadToCloudinary = async (file: File) => {
+  const uploadToCloudinary = async (file: File, folder?: string) => {
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
     if (!cloudName || !uploadPreset) {
-      throw new Error("Cloudinary not configured. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET");
+      throw new Error(
+        "Cloudinary not configured. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET"
+      );
     }
 
     const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
@@ -246,16 +302,27 @@ export default function FreelancerDashboard() {
     fd.append("file", file);
     fd.append("upload_preset", uploadPreset);
 
+    if (folder) {
+      fd.append("folder", folder);
+    }
+
     const res = await fetch(url, { method: "POST", body: fd });
     if (!res.ok) throw new Error("Cloudinary upload failed");
     const data = await res.json();
-    return data.secure_url as string;
+    return { url: data.secure_url, publicId: data.public_id };
+  };
+
+  const deleteFromCloudinary = async (publicIds: string | string[]) => {
+    const res = await fetch("/api/cloudinary/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ publicIds }),
+    });
+    if (!res.ok) throw new Error("Failed to delete image");
   };
 
   if (status === "loading" || loading) {
-    return (
-      <Loader message="Loading your dashboard..." />
-    );
+    return <Loader message="Loading your dashboard..." />;
   }
 
   if (!session) return null;
@@ -397,7 +464,7 @@ export default function FreelancerDashboard() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Hourly Rate ($)
+                      Hourly Rate (Birr)
                     </label>
                     <input
                       type="number"
@@ -434,40 +501,73 @@ export default function FreelancerDashboard() {
                 {/* Portfolio inputs */}
                 <div className="mt-4">
                   <h4 className="font-medium text-gray-900 mb-2">Portfolio</h4>
-                  <p className="text-sm text-gray-500 mb-3">Add portfolio items with an image URL, title and short description.</p>
+                  <p className="text-sm text-gray-500 mb-3">
+                    Add portfolio items with an image, title and short
+                    description.
+                  </p>
 
                   <div className="space-y-4">
                     {profileForm.portfolio.map((item, idx) => (
                       <div key={idx} className="border rounded-lg p-3">
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
                           <div className="sm:col-span-1">
-                            <label className="block text-sm font-medium text-gray-700">Image</label>
+                            <label className="block text-sm font-medium text-gray-700">
+                              Image
+                            </label>
                             <div className="mt-1 flex items-center gap-3">
                               <div className="w-28 h-20 bg-gray-50 flex items-center justify-center overflow-hidden border rounded">
                                 {portfolioPreviews[idx] ? (
-                                  // preview from selected file
-                                  // use img tag to avoid next/image domain restrictions for blob URLs
-                                  <img src={portfolioPreviews[idx] || undefined} alt={item.title || `preview-${idx}`} className="object-cover w-full h-full" />
+                                  // Preview from selected file (blob URL)
+                                  <Image
+                                    src={portfolioPreviews[idx] || ""}
+                                    alt={item.title || `preview-${idx}`}
+                                    width={112}
+                                    height={80}
+                                    className="object-cover w-full h-full"
+                                    unoptimized // needed for blob URLs
+                                  />
                                 ) : item.url ? (
-                                  <img src={item.url} alt={item.title || `preview-${idx}`} className="object-cover w-full h-full" />
+                                  <Image
+                                    src={item.url}
+                                    alt={item.title || `preview-${idx}`}
+                                    width={112}
+                                    height={80}
+                                    className="object-cover w-full h-full"
+                                    unoptimized
+                                  />
                                 ) : (
-                                  <div className="text-gray-400 text-xs">No image</div>
+                                  <div className="text-gray-400 text-xs">
+                                    No image
+                                  </div>
                                 )}
                               </div>
-
                               <div className="flex flex-col">
-                                <label htmlFor={`portfolio-file-${idx}`} className="cursor-pointer px-3 py-1 bg-gray-100 rounded text-sm">
+                                <label
+                                  htmlFor={`portfolio-file-${idx}`}
+                                  className="cursor-pointer px-3 py-1 bg-gray-100 rounded text-sm"
+                                >
                                   Choose image
                                 </label>
                                 <input
                                   id={`portfolio-file-${idx}`}
                                   type="file"
                                   accept="image/*"
-                                  onChange={(e) => handlePortfolioFileChange(idx, e.target.files?.[0] ?? null)}
+                                  onChange={(e) =>
+                                    handlePortfolioFileChange(
+                                      idx,
+                                      e.target.files?.[0] ?? null
+                                    )
+                                  }
                                   className="hidden"
                                 />
                                 {portfolioPreviews[idx] && (
-                                  <button type="button" onClick={() => handlePortfolioFileChange(idx, null)} className="mt-2 text-xs text-red-600 hover:underline">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handlePortfolioFileChange(idx, null)
+                                    }
+                                    className="mt-2 text-xs text-red-600 hover:underline"
+                                  >
                                     Remove selected
                                   </button>
                                 )}
@@ -476,22 +576,38 @@ export default function FreelancerDashboard() {
                           </div>
 
                           <div className="sm:col-span-1">
-                            <label className="block text-sm font-medium text-gray-700">Title</label>
+                            <label className="block text-sm font-medium text-gray-700">
+                              Title
+                            </label>
                             <input
                               type="text"
                               value={item.title}
-                              onChange={(e) => updatePortfolioItem(idx, "title", e.target.value)}
+                              onChange={(e) =>
+                                updatePortfolioItem(
+                                  idx,
+                                  "title",
+                                  e.target.value
+                                )
+                              }
                               placeholder="Project title"
                               className="mt-1 w-full border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                           </div>
 
                           <div className="sm:col-span-1">
-                            <label className="block text-sm font-medium text-gray-700">Description</label>
+                            <label className="block text-sm font-medium text-gray-700">
+                              Description
+                            </label>
                             <input
                               type="text"
                               value={item.description}
-                              onChange={(e) => updatePortfolioItem(idx, "description", e.target.value)}
+                              onChange={(e) =>
+                                updatePortfolioItem(
+                                  idx,
+                                  "description",
+                                  e.target.value
+                                )
+                              }
                               placeholder="Short description"
                               className="mt-1 w-full border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
@@ -524,9 +640,16 @@ export default function FreelancerDashboard() {
 
                 <button
                   type="submit"
-                  className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition mt-4"
+                  disabled={isSubmitting}
+                  className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {profile ? "Update Profile" : "Create Profile"}
+                  {isSubmitting
+                    ? profile
+                      ? "Updating..."
+                      : "Creating..."
+                    : profile
+                    ? "Update Profile"
+                    : "Create Profile"}
                 </button>
               </form>
             ) : (
@@ -542,6 +665,7 @@ export default function FreelancerDashboard() {
                             width={64}
                             height={64}
                             className="rounded-full object-cover"
+                            unoptimized
                           />
                         ) : (
                           <div className="h-12 w-12 flex items-center justify-center rounded-full bg-indigo-100">
@@ -591,11 +715,16 @@ export default function FreelancerDashboard() {
 
                     {/* Portfolio Display */}
                     <div>
-                      <h4 className="font-medium text-gray-900 mt-4 mb-2">Portfolio</h4>
+                      <h4 className="font-medium text-gray-900 mt-4 mb-2">
+                        Portfolio
+                      </h4>
                       {profile.portfolio && profile.portfolio.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {profile.portfolio.map((p, i) => (
-                            <div key={i} className="border rounded-lg overflow-hidden bg-white">
+                            <div
+                              key={i}
+                              className="border rounded-lg overflow-hidden bg-white"
+                            >
                               <div className="h-40 w-full bg-gray-50 flex items-center justify-center overflow-hidden">
                                 {p.url ? (
                                   <Image
@@ -604,14 +733,19 @@ export default function FreelancerDashboard() {
                                     width={480}
                                     height={240}
                                     className="object-cover w-full h-40"
+                                    unoptimized
                                   />
                                 ) : (
                                   <div className="text-gray-400">No image</div>
                                 )}
                               </div>
                               <div className="p-3">
-                                <h5 className="font-semibold text-gray-900">{p.title}</h5>
-                                <p className="text-sm text-gray-600 mt-1">{p.description}</p>
+                                <h5 className="font-semibold text-gray-900">
+                                  {p.title}
+                                </h5>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {p.description}
+                                </p>
                               </div>
                             </div>
                           ))}

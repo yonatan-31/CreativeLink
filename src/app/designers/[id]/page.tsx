@@ -107,8 +107,7 @@ export default function DesignerProfile() {
         setShowProjectForm(false);
         setProjectForm({ title: '', description: '', budget: '' });
       } else {
-        alert('Failed to send project request');
-      }
+        alert('Failed to send project request');      }
     } catch (error) {
       console.error('Error sending project request:', error);
       alert('Failed to send project request');
@@ -289,7 +288,7 @@ export default function DesignerProfile() {
                   <p className="text-2xl font-bold text-indigo-600">Birr {designer.rate}/hr</p>
                 </div>
 
-                {session && (session.user as any)?.role === 'client' && (
+                {session && (session.user)?.role === 'client' && (
                   <div>
                     {!showProjectForm ? (
                       <button
