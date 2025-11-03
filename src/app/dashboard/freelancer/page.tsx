@@ -141,6 +141,31 @@ export default function FreelancerDashboard() {
     }
   };
 
+  const [updatingIds, setUpdatingIds] = useState<string[]>([]);
+
+  const updateRequestStatus = async (id: string, status: string) => {
+    if (updatingIds.includes(id)) return;
+    setUpdatingIds((s) => [...s, id]);
+    try {
+      const res = await fetch(`/api/projects/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data?.message || "Failed to update status");
+      }
+      // update local state
+      setProjectRequests((prev) => prev.map((r) => (r._id === id ? { ...r, status } : r)));
+    } catch (err) {
+      console.error("Error updating request status:", err);
+      alert((err as any)?.message || "Failed to update status");
+    } finally {
+      setUpdatingIds((s) => s.filter((x) => x !== id));
+    }
+  };
+
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return; // prevent double submission
@@ -812,6 +837,67 @@ export default function FreelancerDashboard() {
                           {request.clientId?.email}
                         </a>
                       </div>
+                    </div>
+
+                    {/* Actions for designer */}
+                    <div className="mt-4 flex items-center justify-end gap-2">
+                      {request.status === "pending" && (
+                        <>
+                          <button
+                            onClick={() => {
+                              if (
+                                confirm(
+                                  "Accept this project request and notify the client?"
+                                )
+                              )
+                                updateRequestStatus(request._id, "accepted");
+                            }}
+                            disabled={updatingIds.includes(request._id)}
+                            className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50"
+                          >
+                            {updatingIds.includes(request._id)
+                              ? "Processing..."
+                              : "Accept"}
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              if (confirm("Decline this project request?"))
+                                updateRequestStatus(request._id, "declined");
+                            }}
+                            disabled={updatingIds.includes(request._id)}
+                            className="bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200 disabled:opacity-50"
+                          >
+                            {updatingIds.includes(request._id)
+                              ? "Processing..."
+                              : "Decline"}
+                          </button>
+                        </>
+                      )}
+
+                      {request.status === "accepted" && (
+                        <button
+                          onClick={() => {
+                            if (confirm("Mark this project as completed?"))
+                              updateRequestStatus(request._id, "completed");
+                          }}
+                          disabled={updatingIds.includes(request._id)}
+                          className="bg-indigo-600 text-white px-3 py-1 rounded text-sm hover:bg-indigo-700 disabled:opacity-50"
+                        >
+                          {updatingIds.includes(request._id)
+                            ? "Processing..."
+                            : "Mark Completed"}
+                        </button>
+                      )}
+
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        request.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                        request.status === 'declined' ? 'bg-red-100 text-red-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {request.status}
+                      </span>
                     </div>
                   </div>
                 ))}
