@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { sl } from "zod/locales";
 
 export default function FeaturedDesigners() {
   const [designers, setDesigners] = useState<any[]>([]);

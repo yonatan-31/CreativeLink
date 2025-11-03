@@ -53,7 +53,7 @@ export const clientCards: Card[] = [
   },
   {
     title: "Projects",
-    link: "/projects",
+    link: "/dashboard/client",
     description: "Manage your projects",
     icon: <FolderOpenDot className="text-white" size={20} />,
     color: "bg-yellow-500",
