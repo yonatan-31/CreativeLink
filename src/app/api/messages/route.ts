@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import connectDB from '@/lib/db';
 import Message from '@/models/message';
 import Conversation from '@/models/conversation';
+import mongoose from 'mongoose';
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,6 +26,12 @@ export async function GET(request: NextRequest) {
     // Ensure user is a participant
     if (!convo.participants.map(String).includes(session.user.id)) {
       return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
+
+    // mark as read for current user
+    if (Array.isArray(convo.unreadBy) && convo.unreadBy.map(String).includes(session.user.id)) {
+      convo.unreadBy = convo.unreadBy.map(String).filter((p: string) => p !== session.user.id);
+      await convo.save();
     }
 
     const messages = await Message.find({ conversationId }).populate('sender', 'name avatarUrl').sort({ createdAt: 1 });
@@ -60,7 +67,9 @@ export async function POST(request: NextRequest) {
 
     const msg = await Message.create({ conversationId, sender: session.user.id, text });
     convo.lastMessage = text;
-    await convo.save();
+  // mark unread for other participants
+  convo.unreadBy = convo.participants.map((p: mongoose.Types.ObjectId) => p.toString()).filter((p: string) => p !== session.user.id);
+  await convo.save();
 
     const populated = await msg.populate('sender', 'name avatarUrl');
 

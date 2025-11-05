@@ -12,37 +12,45 @@ export async function GET(request: NextRequest) {
     }
 
     const url = new URL(request.url);
+    const designerId = url.searchParams.get("designerId");
     const projectId = url.searchParams.get("projectId");
 
     await connectDB();
 
-    if (!projectId) {
+    let participants: string[] = [session.user.id];
+
+    if (projectId) {
+      const project = await ProjectRequest.findById(projectId);
+      if (!project)
+        return NextResponse.json(
+          { message: "Project not found" },
+          { status: 404 }
+        );
+      // include both client and designer
+      participants = [
+        project.clientId.toString(),
+        project.designerId.toString(),
+      ];
+    } else if (designerId) {
+      participants = [session.user.id, designerId];
+    } else {
       return NextResponse.json(
-        { message: "projectId required" },
+        { message: "designerId or projectId required" },
         { status: 400 }
       );
     }
 
-    const project = await ProjectRequest.findById(projectId);
-    if (!project)
-      return NextResponse.json(
-        { message: "Project not found" },
-        { status: 404 }
-      );
-    // include both client and designer
-    let participants = [project.clientId.toString(), project.designerId.toString()];
-
-    // Find existing conversation with same participants and projectId 
+    // Find existing conversation with same participants and projectId (if provided)
     const query: any = {
-      participants: { $all: participants.map((p) => p) },
-      projectId: projectId,
+      participants: { $all: participants },
     };
+    if (projectId) query.projectId = projectId;
 
     let convo = await Conversation.findOne(query);
     if (!convo) {
       convo = await Conversation.create({
         participants,
-        projectId: projectId,
+        projectId: projectId || null,
       });
     }
 

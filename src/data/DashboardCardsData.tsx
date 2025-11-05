@@ -33,6 +33,13 @@ export const designerCards: Card[] = [
     icon: <StarIcon className="w-5 h-5 text-white" />,
     color: "bg-yellow-500",
   },
+    {
+    title: "Messages",
+    link: "/dashboard/messagesList",
+    description: "View your messages",
+    icon: <MessageCircleMore className="text-white" size={20} />,
+    color: "bg-green-500",
+  }
 ];
 
 // Client/other cards
@@ -46,7 +53,7 @@ export const clientCards: Card[] = [
   },
   {
     title: "Messages",
-    link: "/messages",
+    link: "/dashboard/messagesList",
     description: "View your messages",
     icon: <MessageCircleMore className="text-white" size={20} />,
     color: "bg-green-500",

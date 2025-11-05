@@ -1,9 +1,10 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IConversation extends Document {
   participants: mongoose.Types.ObjectId[];
-  projectId: mongoose.Types.ObjectId | null;
+  projectId?: mongoose.Types.ObjectId | null;
   lastMessage?: string;
+  unreadBy?: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -13,19 +14,25 @@ const ConversationSchema = new Schema<IConversation>(
     participants: [
       {
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
         required: true,
       },
     ],
     projectId: {
       type: Schema.Types.ObjectId,
-      ref: 'ProjectRequest',
-      required: true,
+      ref: "ProjectRequest",
+      default: null,
     },
     lastMessage: {
       type: String,
-      default: '',
+      default: "",
     },
+    unreadBy: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,
@@ -34,4 +41,5 @@ const ConversationSchema = new Schema<IConversation>(
 
 ConversationSchema.index({ participants: 1 });
 
-export default mongoose.models.Conversation || mongoose.model<IConversation>('Conversation', ConversationSchema);
+export default mongoose.models.Conversation ||
+  mongoose.model<IConversation>("Conversation", ConversationSchema);
