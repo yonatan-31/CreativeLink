@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     // Get project requests from the current client
     const requests = await ProjectRequest.find({ clientId: session.user.id })
-      .populate('designerId', 'name')
+      .populate('designerId', '_id name')
       .sort({ createdAt: -1 });
 
     return NextResponse.json(requests);
