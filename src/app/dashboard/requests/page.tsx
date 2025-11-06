@@ -76,6 +76,26 @@ export default function RequestsDashboard() {
     }
   };
 
+  const requestReview = async (projectId: string) => {
+    try {
+      const res = await fetch(`/api/reviews/request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ projectId }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data?.message || "Failed to request review");
+      }
+      alert("Review requested successfully");
+    } catch (error) {
+      console.error("Error requesting review:", error);
+      alert((error as any)?.message || "Failed to request review");
+    }
+  };
+
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -183,17 +203,17 @@ export default function RequestsDashboard() {
                       </button>
                     </>
                   )}
+                  <button
+                    onClick={() =>
+                      router.push(`/messages?projectId=${request._id}`)
+                    }
+                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
+                  >
+                    Message Client
+                  </button>
 
                   {request.status === "accepted" && (
                     <div className="flex space-x-2">
-                      <button
-                        onClick={() =>
-                          router.push(`/messages?projectId=${request._id}`)
-                        }
-                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
-                      >
-                        Message Client
-                      </button>
                       <button
                         onClick={() => {
                           if (confirm("Mark this project as completed?"))
@@ -217,6 +237,8 @@ export default function RequestsDashboard() {
                         ? "bg-green-100 text-green-800"
                         : request.status === "declined"
                         ? "bg-red-100 text-red-800"
+                        : request.status === "completed"
+                        ? "bg-green-800 text-white"
                         : "bg-blue-100 text-blue-800"
                     }`}
                   >

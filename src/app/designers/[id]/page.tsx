@@ -50,7 +50,7 @@ export default function DesignerProfile() {
     description: '',
     budget: '',
   });
-
+console.log('reviews',reviews);
   useEffect(() => {
     if (params.id) {
       fetchDesigner();
@@ -237,7 +237,7 @@ export default function DesignerProfile() {
 
               {/* Reviews */}
               <div className="bg-white rounded-lg shadow-md p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Reviews</h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Reviews</h2>
                 {reviews.length > 0 ? (
                   <div className="space-y-4">
                     {reviews.map((review) => (
@@ -248,7 +248,7 @@ export default function DesignerProfile() {
                             {[...Array(5)].map((_, i) => (
                               <span
                                 key={i}
-                                className={`text-sm ${
+                                className={`text-2xl ${
                                   i < review.rating ? 'text-yellow-400' : 'text-gray-300'
                                 }`}
                               >
