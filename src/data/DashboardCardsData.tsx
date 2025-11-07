@@ -2,6 +2,7 @@ import { CheckCircleIcon, Search, StarIcon, UserIcon } from "lucide-react";
 import { MessageCircleMore, FolderOpenDot } from "lucide-react";
 import type { ReactNode } from "react";
 
+
 export interface Card {
   title: string;
   link: string;

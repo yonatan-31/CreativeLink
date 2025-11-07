@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import { User, Trash2 } from "lucide-react";
 import Loader from "@/components/Loader";
@@ -157,7 +156,9 @@ export default function FreelancerDashboard() {
         throw new Error(data?.message || "Failed to update status");
       }
       // update local state
-      setProjectRequests((prev) => prev.map((r) => (r._id === id ? { ...r, status } : r)));
+      setProjectRequests((prev) =>
+        prev.map((r) => (r._id === id ? { ...r, status } : r))
+      );
     } catch (err) {
       console.error("Error updating request status:", err);
       alert((err as any)?.message || "Failed to update status");
@@ -354,30 +355,6 @@ export default function FreelancerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center py-4 px-6">
-          <Link href="/" className="text-2xl font-bold text-indigo-600">
-            Creative Link
-          </Link>
-          <nav className="flex items-center space-x-4">
-            <Link
-              href="/dashboard"
-              className="text-gray-700 hover:text-indigo-600 transition-colors"
-            >
-              Dashboard
-            </Link>
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              Sign Out
-            </button>
-          </nav>
-        </div>
-      </header>
-
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
@@ -890,12 +867,17 @@ export default function FreelancerDashboard() {
                         </button>
                       )}
 
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        request.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                        request.status === 'declined' ? 'bg-red-100 text-red-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          request.status === "pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : request.status === "accepted"
+                            ? "bg-green-100 text-green-800"
+                            : request.status === "declined"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
                         {request.status}
                       </span>
                     </div>

@@ -139,20 +139,6 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto flex items-center justify-between px-4 py-3">
-          <h2 className="text-lg font-semibold">Messages</h2>
-          <div>
-            <button
-              onClick={() => router.push(`/dashboard/${role === "client" ? "client" : "requests"}`)}
-              className="text-indigo-600 hover:text-indigo-800 transition-colors"
-            >
-              Back to Project Requests
-            </button>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-4xl mx-auto p-4">
         <div className="bg-white rounded-lg shadow-md h-[70vh] flex flex-col overflow-hidden">
           <div ref={listRef} className="flex-1 overflow-y-auto p-4 space-y-3">

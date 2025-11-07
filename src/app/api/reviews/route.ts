@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     const reviews = await Review.find({ designerId })
-      .populate("clientId", "name")
+      .populate("clientId", "name avatarUrl")
       .sort({ createdAt: -1 });
 
     return NextResponse.json(reviews);

@@ -2,9 +2,25 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+interface FeaturedDesigner {
+  _id: string;
+  user: {
+    _id: string;
+    name: string;
+    avatarUrl: string;
+  };
+  portfolio: {
+    url: string;
+  };
+  title: string;
+  rate: number;
+  skills: string[];
+  reviewsCount: number;
+  ratingAvg: number;
+}
 
 export default function FeaturedDesigners() {
-  const [designers, setDesigners] = useState<any[]>([]);
+  const [designers, setDesigners] = useState<FeaturedDesigner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,7 +61,7 @@ export default function FeaturedDesigners() {
     );
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <section className="max-w-7xl mx-auto px-12 sm:px-10 lg:px-12 py-10">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-bold text-gray-900">Featured Designs</h2>
         <Link href="/designers" className="text-sm text-indigo-600 hover:underline">Browse all</Link>
@@ -80,7 +96,7 @@ export default function FeaturedDesigners() {
                   </div>
 
                   <div className="text-right">
-                    <div className="text-sm font-semibold text-indigo-600">Birr{d.rate ?? "—"}/hr</div>
+                    <div className="text-sm font-semibold text-indigo-600">Birr {d.rate ?? "—"}/hr</div>
                     <div className="text-xs text-gray-400">{d.reviewsCount ?? 0} reviews</div>
                   </div>
                 </div>
