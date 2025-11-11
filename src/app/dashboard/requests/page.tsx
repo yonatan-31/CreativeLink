@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader";
+import MessageButton from "@/components/MessageButton";
 
 interface ProjectRequest {
   _id: string;
@@ -127,7 +128,7 @@ export default function RequestsDashboard() {
                   {request.title}
                 </h2>
                 <p className="mt-2 text-gray-600">{request.description}</p>
-                <p className="mt-2 text-gray-500">Budget: ${request.budget}</p>
+                <p className="mt-2 text-gray-500">Budget: Birr {request.budget}</p>
                 <p className="mt-2 text-gray-500">
                   Client: {request.clientId?.name}
                 </p>
@@ -179,14 +180,8 @@ export default function RequestsDashboard() {
                       </button>
                     </>
                   )}
-                  <button
-                    onClick={() =>
-                      router.push(`/messages?projectId=${request._id}`)
-                    }
-                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
-                  >
-                    Message Client
-                  </button>
+                 
+                  <MessageButton projectId={request._id.toString()} />
 
                   {request.status === "accepted" && (
                     <div className="flex space-x-2">

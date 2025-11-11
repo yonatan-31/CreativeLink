@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { Menu } from "lucide-react";
@@ -11,6 +11,27 @@ export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const showHomeNav = pathname === "/";
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (!open) return;
+      const target = e.target as Node;
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(target) &&
+        toggleRef.current &&
+        !toggleRef.current.contains(target)
+      ) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
 
   return (
     <header className="bg-white/95 backdrop-blur fixed top-0 w-full z-50 border-b mb-0">
@@ -45,6 +66,7 @@ export default function SiteHeader() {
             </div>
 
             <button
+              ref={toggleRef}
               className="md:hidden p-2 rounded-md text-gray-600"
               onClick={() => setOpen(!open)}
               aria-label="Toggle menu"
@@ -59,24 +81,24 @@ export default function SiteHeader() {
 
       {/* Mobile menu */}
       {open && (
-        <div id="mobile-menu" className="md:hidden border-t bg-white/50">
+        <div id="mobile-menu" ref={menuRef} className="md:hidden border-t bg-white/50">
           <div className="px-4 py-3 flex flex-col gap-2">
             {showHomeNav ? (
               <>
-                <Link href="/designers" className="py-2 hover:text-indigo-600">Designers</Link>
-                <Link href="#how" className="py-2 hover:text-indigo-600">How it works</Link>
-                <Link href="/" className="py-2 hover:text-indigo-600">Pricing</Link>
+                <Link href="/designers" onClick={() => setOpen(false)} className="py-2 hover:text-indigo-600">Designers</Link>
+                <Link href="#how" onClick={() => setOpen(false)} className="py-2 hover:text-indigo-600">How it works</Link>
+                <Link href="/" onClick={() => setOpen(false)} className="py-2 hover:text-indigo-600">Pricing</Link>
               </>
             ) : null}
             {session ? (
               <>
-                <Link href="/dashboard" className="py-2 hover:text-indigo-600">Dashboard</Link>
-                <button onClick={() => signOut({ callbackUrl: "/" })} className="text-left py-2 hover:text-indigo-600">Sign out</button>
+                <Link href="/dashboard" onClick={() => setOpen(false)} className="py-2 hover:text-indigo-600">Dashboard</Link>
+                <button onClick={() => { setOpen(false); signOut({ callbackUrl: "/" }); }} className="text-left py-2 hover:text-indigo-600">Sign out</button>
               </>
             ) : (
               <>
-                <Link href="/auth/signin" className="py-2 hover:text-indigo-600">Sign in</Link>
-                <Link href="/auth/signup" className="py-2 hover:text-indigo-600">Get started</Link>
+                <Link href="/auth/signin" onClick={() => setOpen(false)} className="py-2 hover:text-indigo-600">Sign in</Link>
+                <Link href="/auth/signup" onClick={() => setOpen(false)} className="py-2 hover:text-indigo-600">Get started</Link>
               </>
             )}
           </div>

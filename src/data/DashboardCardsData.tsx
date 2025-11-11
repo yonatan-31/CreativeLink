@@ -2,7 +2,6 @@ import { CheckCircleIcon, Search, StarIcon, UserIcon } from "lucide-react";
 import { MessageCircleMore, FolderOpenDot } from "lucide-react";
 import type { ReactNode } from "react";
 
-
 export interface Card {
   title: string;
   link: string;
@@ -34,13 +33,27 @@ export const designerCards: Card[] = [
     icon: <StarIcon className="w-5 h-5 text-white" />,
     color: "bg-yellow-500",
   },
-    {
+  {
     title: "Messages",
     link: "/dashboard/messagesList",
     description: "View your messages",
     icon: <MessageCircleMore className="text-white" size={20} />,
     color: "bg-green-500",
-  }
+  },
+  {
+    title: "Find Projects",
+    link: "/dashboard/findProjects",
+    description: "View posted projects",
+    icon: <FolderOpenDot className="text-white" size={20} />,
+    color: "bg-yellow-500",
+  },
+  {
+    title: "Applied Projects",
+    link: "/dashboard/appliedProjects",
+    description: "View projects you have applied to",
+    icon: <FolderOpenDot className="text-white" size={20} />,
+    color: "bg-yellow-500",
+  },
 ];
 
 // Client/other cards
@@ -60,9 +73,16 @@ export const clientCards: Card[] = [
     color: "bg-green-500",
   },
   {
-    title: "Projects",
+    title: "Project Requests",
     link: "/dashboard/client",
-    description: "Manage your projects",
+    description: "Manage your project Requests",
+    icon: <FolderOpenDot className="text-white" size={20} />,
+    color: "bg-yellow-500",
+  },
+  {
+    title: "Posted Projects",
+    link: "/dashboard/client/postedProjects",
+    description: "Post and Manage your posted projects",
     icon: <FolderOpenDot className="text-white" size={20} />,
     color: "bg-yellow-500",
   },

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { User, Trash2 } from "lucide-react";
 import Loader from "@/components/Loader";
-interface DesignerProfile {
+ interface DesignerProfile {
   _id: string;
   title: string;
   bio: string;
@@ -697,7 +697,7 @@ export default function FreelancerDashboard() {
                         {profile.availability}
                       </span>
                       <span className="font-semibold text-indigo-600">
-                        ${profile.rate}/hr
+                        Birr {profile.rate}/hr
                       </span>
                     </div>
 

@@ -96,7 +96,7 @@ export default function DesignersPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Min Rate ($/hr)
+                Min Rate (Birr/hr)
               </label>
               <input
                 type="number"
@@ -109,7 +109,7 @@ export default function DesignersPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Max Rate ($/hr)
+                Max Rate (Birr/hr)
               </label>
               <input
                 type="number"
@@ -213,7 +213,7 @@ export default function DesignersPage() {
                       <div className="flex items-center justify-between text-sm mt-1">
                         <span className="text-gray-500">Rate</span>
                         <span className="font-semibold text-indigo-600">
-                          ${designer.rate}/hr
+                          Birr {designer.rate}/hr
                         </span>
                       </div>
                     </div>

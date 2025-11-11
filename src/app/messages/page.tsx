@@ -24,7 +24,8 @@ export default function MessagesPage() {
   const listRef = useRef<HTMLDivElement | null>(null);
 
   const projectId = search.get("projectId");
-  const convoParam = search.get("conversationId");
+  const clientId = search.get("clientId");
+  const designerId = search.get("designerId");
   const role = session?.user?.role;
 
   useEffect(() => {
@@ -33,12 +34,6 @@ export default function MessagesPage() {
       router.push("/auth/signin");
       return;
     }
-
-    if (convoParam) {
-      setConversationId(convoParam);
-      fetchMessages(convoParam);
-      startPolling(convoParam);
-    } else {
       // create or get conversation
       (async () => {
         setLoading(true);
@@ -57,8 +52,32 @@ export default function MessagesPage() {
             } else {
               console.error("Failed to get/create conversation");
             }
-          } else {
-            return "projectId required";
+          } else if (designerId) {
+            q.set("designerId", designerId);
+            const res = await fetch(
+              `/api/messages/conversation?${q.toString()}`
+            );
+            if (res.ok) {
+              const data = await res.json();
+              setConversationId(data.conversationId);
+              fetchMessages(data.conversationId);
+              startPolling(data.conversationId);
+            } else {
+              console.error("Failed to get/create conversation");
+            }
+          }else if (clientId) {
+            q.set("clientId", clientId);
+            const res = await fetch(
+              `/api/messages/conversation?${q.toString()}`
+            );
+            if (res.ok) {
+              const data = await res.json();
+              setConversationId(data.conversationId);
+              fetchMessages(data.conversationId);
+              startPolling(data.conversationId);
+            }
+          }else {
+            console.error("projectId or designerId required");
           }
         } catch (err) {
           console.error(err);
@@ -66,7 +85,7 @@ export default function MessagesPage() {
           setLoading(false);
         }
       })();
-    }
+    
 
     return () => stopPolling();
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -35,7 +35,7 @@ const DashboardCards = ({
               <dt className="text-sm font-medium text-gray-500 truncate">
                 {title}
               </dt>
-              <dd className="text-lg font-medium text-gray-900">
+              <dd className="text-lg font-medium text-gray-900 pl-5">
                 {description}
               </dd>
             </dl>

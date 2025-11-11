@@ -5,6 +5,8 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Loader from "@/components/Loader";
+import Message from "@/models/message";
+import MessageButton from "@/components/MessageButton";
 
 interface ProjectRequest {
   _id: string;
@@ -191,17 +193,8 @@ export default function ClientDashboard() {
                             </p>
                           </div>
                           <div className="flex space-x-2">
-                            {request.status === "accepted" && (
-                              <button
-                                onClick={() =>
-                                  router.push(
-                                    `/messages?projectId=${request._id}`
-                                  )
-                                }
-                                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
-                              >
-                                Message Designer
-                              </button>
+                            {(request.status === "accepted" || request.status === "completed") && (
+                              <MessageButton designerId={request.designerId._id} />
                             )}
                             {request.status === "completed" &&
                               !request.reviewed && (

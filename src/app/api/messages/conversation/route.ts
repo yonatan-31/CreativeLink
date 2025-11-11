@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const designerId = url.searchParams.get("designerId");
     const projectId = url.searchParams.get("projectId");
+    const clientId = url.searchParams.get("clientId");
 
     await connectDB();
 
@@ -33,6 +34,8 @@ export async function GET(request: NextRequest) {
       ];
     } else if (designerId) {
       participants = [session.user.id, designerId];
+    } else if (clientId) {
+      participants = [session.user.id, clientId];
     } else {
       return NextResponse.json(
         { message: "designerId or projectId required" },
@@ -44,13 +47,13 @@ export async function GET(request: NextRequest) {
     const query: any = {
       participants: { $all: participants },
     };
-    if (projectId) query.projectId = projectId;
+    // if (projectId) query.projectId = projectId;
 
     let convo = await Conversation.findOne(query);
     if (!convo) {
       convo = await Conversation.create({
         participants,
-        projectId: projectId || null,
+        // projectId: projectId || null,
       });
     }
 
