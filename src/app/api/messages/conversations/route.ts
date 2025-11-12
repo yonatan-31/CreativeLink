@@ -32,7 +32,7 @@ export async function GET() {
         participants[0];
       return {
         _id: c._id,
-        projectId: c.projectId || null,
+        // projectId: c.projectId || null,
         lastMessage: c.lastMessage || "",
         updatedAt: c.updatedAt,
         otherParticipant: other,

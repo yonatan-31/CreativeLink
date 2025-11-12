@@ -33,7 +33,6 @@ export default function ClientDashboard() {
   const [commentById, setCommentById] = useState<Record<string, string>>({});
   const [submittingIds, setSubmittingIds] = useState<string[]>([]);
 
-  console.log("Project Requests:", projectRequests);
   useEffect(() => {
     if (status === "loading") return;
     if (!session) {

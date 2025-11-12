@@ -23,12 +23,12 @@ export default function MessagesPage() {
   const pollingRef = useRef<number | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
 
-  const projectId = search.get("projectId");
+  const conversation_id = search.get("conversationId");
   const clientId = search.get("clientId");
   const designerId = search.get("designerId");
-    
+
   console.log("search", search)
-  console.log("ids", projectId, clientId, designerId)
+  console.log("ids", clientId, designerId, conversation_id)
 
   useEffect(() => {
     if (status === "loading") return;
@@ -41,19 +41,11 @@ export default function MessagesPage() {
         setLoading(true);
         try {
           const q = new URLSearchParams();
-          if (projectId) {
-            q.set("projectId", projectId);
-            const res = await fetch(
-              `/api/messages/conversation?${q.toString()}`
-            );
-            if (res.ok) {
-              const data = await res.json();
-              setConversationId(data.conversationId);
-              fetchMessages(data.conversationId);
-              startPolling(data.conversationId);
-            } else {
-              console.error("Failed to get/create conversation");
-            }
+          if (conversation_id) {
+              setConversationId(conversation_id);
+              fetchMessages(conversation_id);
+              startPolling(conversation_id);
+    
           } else if (designerId) {
             q.set("designerId", designerId);
             const res = await fetch(

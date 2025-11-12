@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 export interface IConversation extends Document {
   participants: mongoose.Types.ObjectId[];
-  projectId?: mongoose.Types.ObjectId | null;
+  // projectId?: mongoose.Types.ObjectId | null;
   lastMessage?: string;
   unreadBy?: mongoose.Types.ObjectId[];
   createdAt: Date;
@@ -18,11 +18,11 @@ const ConversationSchema = new Schema<IConversation>(
         required: true,
       },
     ],
-    projectId: {
-      type: Schema.Types.ObjectId,
-      ref: "ProjectRequest",
-      default: null,
-    },
+    // projectId: {
+    //   type: Schema.Types.ObjectId,
+    //   ref: "ProjectRequest",
+    //   default: null,
+    // },
     lastMessage: {
       type: String,
       default: "",

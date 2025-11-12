@@ -7,7 +7,6 @@ import Loader from "@/components/Loader";
 
 interface ConversationCard {
   _id: string;
-  projectId: string | null;
   lastMessage: string;
   updatedAt: string;
   otherParticipant: { _id: string; name: string; avatarUrl?: string };
@@ -33,7 +32,6 @@ export default function MessageList() {
       if (res.ok) {
         const data = await res.json();
         setConversations(data);
-        console.log("data3", data)
       }
     } catch (err) {
       console.error(err);
@@ -54,8 +52,7 @@ export default function MessageList() {
           <button
             key={c._id}
             onClick={() => {
-              if (c.projectId) router.push(`/messages?projectId=${c.projectId}`);
-              else router.push(`/messages?conversationId=${c._id}`);
+             router.push(`/messages?conversationId=${c._id}`);
             }}
             className="w-full text-left bg-white p-4 rounded-lg shadow-sm hover:shadow-md flex items-center gap-4"
           >
