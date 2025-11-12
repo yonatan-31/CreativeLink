@@ -27,8 +27,6 @@ export default function MessagesPage() {
   const clientId = search.get("clientId");
   const designerId = search.get("designerId");
 
-  console.log("search", search)
-  console.log("ids", clientId, designerId, conversation_id)
 
   useEffect(() => {
     if (status === "loading") return;

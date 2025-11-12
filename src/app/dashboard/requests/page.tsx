@@ -9,6 +9,7 @@ import MessageButton from "@/components/MessageButton";
 interface ProjectRequest {
   _id: string;
   clientId: {
+    _id: string;
     name: string;
     email: string;
   };
@@ -24,7 +25,7 @@ export default function RequestsDashboard() {
   const router = useRouter();
   const [projectRequests, setProjectRequests] = useState<ProjectRequest[]>([]);
   const [loading, setLoading] = useState(false);
-
+  
   useEffect(() => {
     if (status === "loading") return;
     if (!session) {
@@ -163,7 +164,7 @@ export default function RequestsDashboard() {
                     </>
                   )}
 
-                  <MessageButton projectId={request._id.toString()} />
+                  <MessageButton clientId={request.clientId._id} />
 
                   {request.status === "accepted" && (
                     <div className="flex space-x-2">
