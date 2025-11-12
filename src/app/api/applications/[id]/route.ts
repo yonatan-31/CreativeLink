@@ -46,14 +46,14 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: {params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
     if (!session || !session.user)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    const { id } = params;
+    const { id } = await params;
     await connectDB();
     const app = await Application.findById(id);
     if (!app)

@@ -4,7 +4,7 @@ import connectDB from '@/lib/db';
 import ClientProjects from '@/models/clientProjects';
 import Application from '@/models/application';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: {params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session || !session.user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });

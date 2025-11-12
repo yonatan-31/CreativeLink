@@ -40,7 +40,7 @@ export default function PostAProject({
         // notify any listeners (lists) to refresh immediately
         try {
           window.dispatchEvent(new CustomEvent('clientProject:created'));
-        } catch (e) {
+        } catch {
           // ignore in non-browser environments
         }
         alert("Project posted");

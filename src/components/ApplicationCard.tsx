@@ -4,7 +4,32 @@ import React, { useState } from "react";
 import Link from "next/link";
 import MessageButton from "./MessageButton";
 
-export default function ApplicationCard({ app, onRemoved, onUpdated }: any) {
+interface Application {
+  _id: string;
+  coverLetter?: string;
+  status: "pending" | "accepted" | "rejected";
+  createdAt: string;
+  clientProjectId?: {
+    _id: string;
+    title: string;
+    description: string;
+    category?: string;
+    budget?: number;
+    clientId?: string;
+  } | null;
+}
+
+interface ApplicationCardProps {
+  app: Application;
+  onRemoved?: (id: string) => void;
+  onUpdated?: (updatedApp: Application) => void;
+}
+
+export default function ApplicationCard({
+  app,
+  onRemoved,
+  onUpdated,
+}: ApplicationCardProps) {
   const [showCover, setShowCover] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(app.coverLetter || "");
@@ -22,7 +47,8 @@ export default function ApplicationCard({ app, onRemoved, onUpdated }: any) {
       if (res.ok) {
         const data = await res.json();
         console.log("Saved application data:", data.application);
-        onUpdated && onUpdated(data.application);
+        if (onUpdated) onUpdated(data.application);
+
         setEditing(false);
       } else {
         const d = await res.json().catch(() => ({}));
@@ -44,7 +70,7 @@ export default function ApplicationCard({ app, onRemoved, onUpdated }: any) {
         method: "DELETE",
       });
       if (res.ok) {
-        onRemoved && onRemoved(app._id);
+        if (onRemoved) onRemoved(app._id);
       } else {
         const d = await res.json().catch(() => ({}));
         alert(d?.message || "Failed to withdraw");

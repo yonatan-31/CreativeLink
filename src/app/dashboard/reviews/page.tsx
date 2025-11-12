@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader";
+import Image from "next/image";
 
 interface Review {
   _id: string;
@@ -91,10 +92,13 @@ export default function DesignerReviewsPage() {
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-indigo-600 font-semibold">
                         {r.clientId?.avatarUrl ? (
-                          <img
+                          <Image
                             src={r.clientId.avatarUrl}
-                            alt={r.clientId.name}
-                            className="h-10 w-10 rounded-full"
+                            alt={r.clientId.name || "Client Avatar"}
+                            width={40} // same as h-10
+                            height={40}
+                            className="rounded-full object-cover"
+                            unoptimized // optional: keep if URL is external and you don't want Next.js optimization
                           />
                         ) : (
                           r.clientId?.name?.[0] || "U"

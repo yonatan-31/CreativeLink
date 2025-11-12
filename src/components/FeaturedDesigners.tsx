@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+
 interface FeaturedDesigner {
   _id: string;
   user: {
@@ -33,9 +35,9 @@ export default function FeaturedDesigners() {
         if (!res.ok) throw new Error("Failed to fetch");
         const data = await res.json();
         if (mounted) setDesigners(data || []);
-      } catch (err: any) {
+      } catch (err) {
         console.error(err);
-        if (mounted) setError(err?.message || "Failed to load");
+        if (mounted) setError((err as Error)?.message || "Failed to load");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -49,7 +51,9 @@ export default function FeaturedDesigners() {
 
   if (loading)
     return (
-      <div className="py-8 text-center text-gray-500">Loading featured designers…</div>
+      <div className="py-8 text-center text-gray-500">
+        Loading featured designers…
+      </div>
     );
 
   if (error)
@@ -57,14 +61,21 @@ export default function FeaturedDesigners() {
 
   if (!designers.length)
     return (
-      <div className="py-8 text-center text-gray-500">No featured designers found</div>
+      <div className="py-8 text-center text-gray-500">
+        No featured designers found
+      </div>
     );
 
   return (
     <section className="max-w-7xl mx-auto px-12 sm:px-10 lg:px-12 py-10">
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-bold text-gray-900">Featured Designs</h2>
-        <Link href="/designers" className="text-sm text-indigo-600 hover:underline">Browse all</Link>
+        <Link
+          href="/designers"
+          className="text-sm text-indigo-600 hover:underline"
+        >
+          Browse all
+        </Link>
       </div>
 
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -75,40 +86,73 @@ export default function FeaturedDesigners() {
           const cover = d.portfolio ? d.portfolio.url : "/bg-home.jpg";
 
           return (
-            <article key={key} className="bg-white border rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
-              <div className="h-44 w-full bg-gray-100 overflow-hidden">
-                <img src={cover} alt={name} className="w-full h-full object-cover" />
+            <article
+              key={key}
+              className="bg-white border rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition"
+            >
+              <div className="h-44 w-full bg-gray-100 overflow-hidden relative">
+                <Image
+                  src={cover || "/bg-home.jpg"}
+                  alt={name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 33vw"
+                />
               </div>
 
               <div className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {d.user?.avatarUrl ? (
-                      <img src={d.user.avatarUrl} alt={name} className="h-10 w-10 rounded-full object-cover" />
+                      <Image
+                        src={d.user.avatarUrl}
+                        alt={name}
+                        width={40}
+                        height={40}
+                        className="rounded-full object-cover"
+                      />
                     ) : (
-                      <div className="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-semibold">{(name || "?").charAt(0)}</div>
+                      <div className="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-semibold">
+                        {(name || "?").charAt(0)}
+                      </div>
                     )}
 
                     <div>
-                      <h3 className="text-base font-semibold text-gray-900">{name}</h3>
+                      <h3 className="text-base font-semibold text-gray-900">
+                        {name}
+                      </h3>
                       <p className="text-xs text-gray-500">{d.title}</p>
                     </div>
                   </div>
 
                   <div className="text-right">
-                    <div className="text-sm font-semibold text-indigo-600">Birr {d.rate ?? "—"}/hr</div>
-                    <div className="text-xs text-gray-400">{d.reviewsCount ?? 0} reviews</div>
+                    <div className="text-sm font-semibold text-indigo-600">
+                      Birr {d.rate ?? "—"}/hr
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {d.reviewsCount ?? 0} reviews
+                    </div>
                   </div>
                 </div>
 
                 <div className="mt-4 flex items-center justify-between">
                   <div className="flex flex-wrap gap-2">
-                    {(d.skills || []).slice(0, 4).map((s: string, i: number) => (
-                      <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded">{s}</span>
-                    ))}
+                    {(d.skills || [])
+                      .slice(0, 4)
+                      .map((s: string, i: number) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded"
+                        >
+                          {s}
+                        </span>
+                      ))}
                   </div>
 
-                  <Link href={`/designers/${slug}`} className="inline-flex items-center gap-2 text-indigo-600 text-sm font-medium hover:underline">
+                  <Link
+                    href={`/designers/${slug}`}
+                    className="inline-flex items-center gap-2 text-indigo-600 text-sm font-medium hover:underline"
+                  >
                     View Profile
                   </Link>
                 </div>

@@ -1,18 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Loader from "@/components/Loader";
+interface Project {
+  _id: string;
+  title: string;
+  description: string;
+  budget: number;
+  category: string;
+  clientId?: {
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+}
 
 export default function ProjectPage() {
   const params = useParams();
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const [project, setProject] = useState<any | null>(null);
+  const { data: session } = useSession();
+  const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [coverLetter, setCoverLetter] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const fetchProject = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `/api/client-projects?status=open&limit=1&id=${params.id}`
+      );
+      if (res.ok) {
+        const data: { projects: Project[] } = await res.json();
+        setProject(
+          Array.isArray(data.projects) ? data.projects[0] : data.projects
+        );
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [params.id]);
 
   useEffect(() => {
     if (!params?.id) return;
@@ -23,27 +54,7 @@ export default function ProjectPage() {
     }
 
     fetchProject();
-  }, [params?.id]);
-
-  const fetchProject = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `/api/client-projects?status=open&limit=1&id=${params.id}`
-      );
-      if (res.ok) {
-        const data = await res.json();
-
-        setProject(
-          Array.isArray(data.projects) ? data.projects[0] : data.projects
-        );
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [params?.id, fetchProject, router, session]);
 
   const apply = async () => {
     if (!coverLetter.trim()) return alert("Please add a cover letter");

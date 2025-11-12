@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { User, Trash2 } from "lucide-react";
 import Loader from "@/components/Loader";
- interface DesignerProfile {
+interface DesignerProfile {
   _id: string;
   title: string;
   bio: string;
@@ -114,7 +114,14 @@ export default function FreelancerDashboard() {
               data.portfolio || [
                 { url: "", publicId: "", title: "", description: "" },
               ]
-            ).map((p: any) => p.url || null)
+            ).map(
+              (p: {
+                url: string;
+                publicId: string;
+                title: string;
+                description: string;
+              }) => p.url || null
+            )
           );
         }
       }
@@ -161,7 +168,11 @@ export default function FreelancerDashboard() {
       );
     } catch (err) {
       console.error("Error updating request status:", err);
-      alert((err as any)?.message || "Failed to update status");
+      if (err instanceof Error) {
+        alert(err.message);
+      } else {
+        alert("Failed to update status");
+      }
     } finally {
       setUpdatingIds((s) => s.filter((x) => x !== id));
     }

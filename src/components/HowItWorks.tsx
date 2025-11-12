@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { BookOpen, Layout, Megaphone } from "lucide-react";
 
 export default function HowItWorks() {

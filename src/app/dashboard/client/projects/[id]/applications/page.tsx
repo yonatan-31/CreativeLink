@@ -3,8 +3,19 @@ import { auth } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import Application from "@/models/application";
 import ClientProjects from "@/models/clientProjects";
-import MessageDesignerButton from "@/components/MessageButton";
 import MessageButton from "@/components/MessageButton";
+interface PopulatedApplication {
+  _id: string;
+  clientProjectId: string;
+  coverLetter: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
+  designerId?: {
+    _id: string;
+    name: string;
+  } | null;
+}
 
 export default async function Page({
   params,
@@ -33,7 +44,7 @@ export default async function Page({
         {apps.length === 0 && (
           <div className="text-gray-500">No applications yet.</div>
         )}
-        {apps.map((a: any) => (
+        {apps.map((a: PopulatedApplication) => (
           <div key={a._id} className="bg-white p-4 rounded shadow">
             <div className="flex flex-col sm:flex-row justify-between items-start">
               <div>

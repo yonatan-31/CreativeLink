@@ -3,18 +3,17 @@ import { auth } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import ClientProjects from "@/models/clientProjects";
 import Application from "@/models/application";
-import { redirect } from "next/dist/server/api-utils";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
     if (!session || !session.user)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    const { id } = params; // client project id
+    const { id } = await params; // client project id
     const body = await req.json();
     const { applicationId } = body;
     if (!applicationId)
@@ -66,8 +65,9 @@ export async function PATCH(
 // Accept POST from forms as well
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const data = await req.formData();
     const applicationId = data.get("applicationId") as string | null;
@@ -83,7 +83,6 @@ export async function POST(
     if (!session || !session.user)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-    const { id } = params;
     await connectDB();
     const proj = await ClientProjects.findById(id);
     if (!proj)
@@ -114,12 +113,12 @@ export async function POST(
     await proj.save();
 
     return NextResponse.redirect(
-      `/dashboard/client/projects/${params.id}/applications`
+      `/dashboard/client/projects/${id}/applications`
     );
   } catch (err) {
     console.error(err);
     return NextResponse.redirect(
-      new URL(`/dashboard/client/projects/${params.id}/applications`, req.url)
+      new URL(`/dashboard/client/projects/${id}/applications`, req.url)
     );
   }
 }

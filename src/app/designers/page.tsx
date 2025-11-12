@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Loader from "@/components/Loader";
-
+import Image from "next/image";
 interface Designer {
   _id: string;
   userId: {
@@ -31,11 +31,7 @@ export default function DesignersPage() {
     availability: "",
   });
 
-  useEffect(() => {
-    fetchDesigners();
-  }, []);
-
-  const fetchDesigners = async () => {
+  const fetchDesigners = useCallback(async () => {
     try {
       const queryParams = new URLSearchParams();
       if (filters.category) queryParams.append("category", filters.category);
@@ -54,7 +50,11 @@ export default function DesignersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    fetchDesigners();
+  }, [fetchDesigners]);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -159,10 +159,13 @@ export default function DesignersPage() {
                     <div className="flex items-center mb-4">
                       <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
                         {designer.userId.avatarUrl ? (
-                          <img
+                          <Image
                             src={designer.userId.avatarUrl}
-                            alt={designer.userId.name}
-                            className="w-12 h-12 rounded-full object-cover"
+                            alt={designer.userId.name || "Designer Avatar"}
+                            width={48} // matches w-12
+                            height={48} // matches h-12
+                            className="rounded-full object-cover"
+                            unoptimized // optional: for external URLs without configuring domains
                           />
                         ) : (
                           <span className="text-indigo-600 font-semibold text-lg">

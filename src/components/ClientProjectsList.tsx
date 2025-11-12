@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 // simple polling implementation (no extra deps)
 
@@ -15,38 +15,50 @@ interface Opp {
   createdAt: string;
 }
 
-export default function ClientProjectsList({ onCountChange }: { onCountChange?: (count: number) => void }) {
+export default function ClientProjectsList({
+  onCountChange,
+}: {
+  onCountChange?: (count: number) => void;
+}) {
   const [projects, setProjects] = useState<Opp[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchMyProjects = async () => {
+  const fetchMyProjects = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/client-projects?mine=true');
+      const res = await fetch("/api/client-projects?mine=true");
       if (res.ok) {
         const data = await res.json();
-        const list: Opp[] = Array.isArray(data) ? data : (data?.projects || []);
+        const list: Opp[] = Array.isArray(data) ? data : data?.projects || [];
         setProjects(list);
         if (onCountChange) onCountChange(list.length || 0);
       }
     } catch (err) {
-      console.error('Failed to fetch projects', err);
+      console.error("Failed to fetch projects", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [onCountChange]);
 
   useEffect(() => {
     let mounted = true;
-    const onCreated = () => { if (mounted) fetchMyProjects(); };
+    const onCreated = () => {
+      if (mounted) fetchMyProjects();
+    };
     fetchMyProjects();
-    window.addEventListener('clientProject:created', onCreated as EventListener);
+    window.addEventListener(
+      "clientProject:created",
+      onCreated as EventListener
+    );
 
     return () => {
       mounted = false;
-      window.removeEventListener('clientProject:created', onCreated as EventListener);
+      window.removeEventListener(
+        "clientProject:created",
+        onCreated as EventListener
+      );
     };
-  }, []);
+  }, [fetchMyProjects]);
 
   if (loading) return <div>Loading your projects...</div>;
 
@@ -54,7 +66,7 @@ export default function ClientProjectsList({ onCountChange }: { onCountChange?: 
     <div className="space-y-4">
       {projects.length === 0 ? (
         <div className="text-gray-500">
-          You haven't posted any projects yet.
+          You haven&apos;t posted any projects yet.
         </div>
       ) : (
         projects.map((p) => (

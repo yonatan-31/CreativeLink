@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader";
 import MessageButton from "@/components/MessageButton";
@@ -33,6 +33,7 @@ export default function RequestsDashboard() {
     }
     fetchProjectRequests();
   }, [session, status, router]);
+
 
   const fetchProjectRequests = async () => {
     try {
@@ -68,31 +69,10 @@ export default function RequestsDashboard() {
       setProjectRequests((prev) =>
         prev.map((r) => (r._id === id ? { ...r, status } : r))
       );
-    } catch (err) {
-      console.error("Error updating request status:", err);
-      alert((err as any)?.message || "Failed to update status");
-    } finally {
-      setUpdatingIds((s) => s.filter((x) => x !== id));
-    }
-  };
-
-  const requestReview = async (projectId: string) => {
-    try {
-      const res = await fetch(`/api/reviews/request`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ projectId }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data?.message || "Failed to request review");
-      }
-      alert("Review requested successfully");
     } catch (error) {
-      console.error("Error requesting review:", error);
-      alert((error as any)?.message || "Failed to request review");
+      console.error("Error fetching project requests:", error);
+    }finally {
+      setUpdatingIds((s) => s.filter((x) => x !== id));
     }
   };
 
@@ -128,7 +108,9 @@ export default function RequestsDashboard() {
                   {request.title}
                 </h2>
                 <p className="mt-2 text-gray-600">{request.description}</p>
-                <p className="mt-2 text-gray-500">Budget: Birr {request.budget}</p>
+                <p className="mt-2 text-gray-500">
+                  Budget: Birr {request.budget}
+                </p>
                 <p className="mt-2 text-gray-500">
                   Client: {request.clientId?.name}
                 </p>
@@ -180,7 +162,7 @@ export default function RequestsDashboard() {
                       </button>
                     </>
                   )}
-                 
+
                   <MessageButton projectId={request._id.toString()} />
 
                   {request.status === "accepted" && (

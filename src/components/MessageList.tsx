@@ -33,6 +33,7 @@ export default function MessageList() {
       if (res.ok) {
         const data = await res.json();
         setConversations(data);
+        console.log("data3", data)
       }
     } catch (err) {
       console.error(err);

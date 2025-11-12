@@ -1,50 +1,44 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import connectDB from '@/lib/db';
-import ProjectRequest from '@/models/projectRequest';
+import connectDB from "@/lib/db";
+import ProjectRequest from "@/models/projectRequest";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
-    
+
     if (!session || !session.user) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { status } = body;
 
-    if (!status || !['pending', 'accepted', 'declined', 'completed'].includes(status)) {
-      return NextResponse.json(
-        { message: 'Invalid status' },
-        { status: 400 }
-      );
+    if (
+      !status ||
+      !["pending", "accepted", "declined", "completed"].includes(status)
+    ) {
+      return NextResponse.json({ message: "Invalid status" }, { status: 400 });
     }
 
     await connectDB();
 
     const project = await ProjectRequest.findById(id);
-    
+
     if (!project) {
       return NextResponse.json(
-        { message: 'Project not found' },
+        { message: "Project not found" },
         { status: 404 }
       );
     }
 
     // Check if the user is the designer for this project
     if (project.designerId.toString() !== session.user.id) {
-      return NextResponse.json(
-        { message: 'Forbidden' },
-        { status: 403 }
-      );
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     const updatedProject = await ProjectRequest.findByIdAndUpdate(
@@ -55,11 +49,10 @@ export async function PATCH(
 
     return NextResponse.json(updatedProject);
   } catch (error) {
-    console.error('Error updating project:', error);
+    console.error("Error updating project:", error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }
 }
-

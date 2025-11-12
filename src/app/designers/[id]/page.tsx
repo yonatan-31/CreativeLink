@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import Loader from "@/components/Loader";
-
+import Image from "next/image";
 interface Designer {
   _id: string;
   userId: {
@@ -50,15 +50,8 @@ export default function DesignerProfile() {
     description: "",
     budget: "",
   });
-  console.log("reviews", reviews);
-  useEffect(() => {
-    if (params.id) {
-      fetchDesigner();
-      fetchReviews();
-    }
-  }, [params.id]);
 
-  const fetchDesigner = async () => {
+  const fetchDesigner = useCallback(async () => {
     try {
       const response = await fetch(`/api/designers/${params.id}`);
       if (response.ok) {
@@ -68,9 +61,9 @@ export default function DesignerProfile() {
     } catch (error) {
       console.error("Error fetching designer:", error);
     }
-  };
+  }, [params.id]);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       const response = await fetch(`/api/reviews?designerId=${params.id}`);
       if (response.ok) {
@@ -82,7 +75,14 @@ export default function DesignerProfile() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    if (params.id) {
+      fetchDesigner();
+      fetchReviews();
+    }
+  }, [params.id, fetchDesigner, fetchReviews]);
 
   const handleProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,10 +148,12 @@ export default function DesignerProfile() {
                 <div className="flex items-start space-x-4">
                   <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center">
                     {designer.userId.avatarUrl ? (
-                      <img
-                        src={designer.userId.avatarUrl}
+                      <Image
+                        src={designer.userId.avatarUrl || "/default-avatar.png"}
                         alt={designer.userId.name}
-                        className="w-20 h-20 rounded-full object-cover"
+                        width={80} // fixed width
+                        height={80} // fixed height
+                        className="rounded-full object-cover"
                       />
                     ) : (
                       <span className="text-indigo-600 font-bold text-2xl">
@@ -212,10 +214,12 @@ export default function DesignerProfile() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {designer.portfolio.map((item, index) => (
                         <div key={index} className="border rounded-lg p-4">
-                          <img
+                          <Image
                             src={item.url}
                             alt={item.title}
-                            className="w-full h-48 object-cover rounded-md mb-3"
+                            width={400} // desired width
+                            height={192} // desired height
+                            className="rounded-md mb-3 object-cover"
                           />
                           <h3 className="font-semibold text-gray-900">
                             {item.title}

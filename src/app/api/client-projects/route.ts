@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const mine = q.get('mine') === 'true';
     const id = q.get('id');
 
-    const query: any = {};
+    const query: Record<string, unknown> = {};
     if (status) query.status = status;
     if (id) query._id = id;
 

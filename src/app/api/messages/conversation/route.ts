@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import connectDB from "@/lib/db";
-import Conversation from "@/models/conversation";
+import Conversation, { IConversation } from "@/models/conversation";
 import ProjectRequest from "@/models/projectRequest";
+import mongoose, { FilterQuery } from "mongoose";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,6 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     const url = new URL(request.url);
+    console.log("url.searchParams", url.searchParams)
     const designerId = url.searchParams.get("designerId");
     const projectId = url.searchParams.get("projectId");
     const clientId = url.searchParams.get("clientId");
@@ -43,17 +45,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const objectIds = participants.map((id) => new mongoose.Types.ObjectId(id));
+
     // Find existing conversation with same participants and projectId (if provided)
-    const query: any = {
-      participants: { $all: participants },
+    const query: FilterQuery<IConversation> = {
+      participants: { $all: objectIds },
     };
     // if (projectId) query.projectId = projectId;
 
     let convo = await Conversation.findOne(query);
     if (!convo) {
       convo = await Conversation.create({
-        participants,
-        // projectId: projectId || null,
+        objectIds,
       });
     }
 

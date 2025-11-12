@@ -87,7 +87,7 @@ export const authOptions = {
       },
     }),
   ],
-
+  trustHost: true,
   callbacks: {
     async signIn({
       user,
@@ -157,7 +157,7 @@ export const authOptions = {
             token.role = dbUser.role;
             token.avatarUrl = dbUser.avatarUrl;
           }
-        } catch (err) {
+        } catch {
           // silently ignore DB errors here; keep existing token values
           // so we don't block authentication flows
         }
